@@ -4,11 +4,7 @@ Classic GoF patterns and common anti-patterns every architect should recognize.
 
 ## Topics
 
-- [ ] Creational Patterns
-- [ ] Structural Patterns
-- [ ] Behavioral Patterns
-- [ ] Anti-Patterns
-
-## Notes
-
-_Work in progress. Files will be added for each topic above._
+- [x] [Creational Patterns](./creational-patterns.md)
+- [x] [Structural Patterns](./structural-patterns.md)
+- [x] [Behavioral Patterns](./behavioral-patterns.md)
+- [x] [Anti-Patterns](./anti-patterns.md)
