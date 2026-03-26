@@ -9,6 +9,7 @@ Sprint 1 单元测试
 """
 
 import pytest
+import time
 import tempfile
 import os
 from shop.product_store import ProductStore, Product
@@ -48,8 +49,51 @@ class TestProductStoreGetById:
         result = store.get_by_id(999)
         assert result is None
 
-    # TODO: 添加一个测试，验证查找 O(1) 的行为
-    # 提示：可以添加 1000 个商品，然后验证查询最后一个商品的时间接近常数
+    def test_get_is_constant_time(self, tmp_path, monkeypatch):
+        """
+        验证 get_by_id 的 O(1) 特性：
+        无论 dict 中有 10 个还是 10,000 个商品，查询耗时应接近常数。
+
+        设计说明：
+        - 用 monkeypatch 禁用 _save()，避免 10,000 次 JSON 写入造成 O(n²) I/O 干扰
+        - 对比小集合（10）和大集合（10,000）的查询耗时
+        - 若是 O(n) 算法，大集合应慢约 1,000 倍；O(1) 应接近相同
+        """
+        data_file = str(tmp_path / "products.json")
+        store = ProductStore(data_file=data_file)
+
+        # 禁用磁盘写入，只测内存操作的复杂度
+        monkeypatch.setattr(store, "_save", lambda: None)
+
+        # 构造小集合（10个），测量查询耗时
+        for i in range(10):
+            store.add(f"Product-{i}", float(i), i)
+        last_id_small = store._next_id - 1
+
+        rounds = 10_000
+        start = time.perf_counter()
+        for _ in range(rounds):
+            store.get_by_id(last_id_small)
+        time_small = (time.perf_counter() - start) / rounds
+
+        # 扩大到 10,000 个，测量查询耗时
+        for i in range(9990):
+            store.add(f"Extra-{i}", 1.0, 1)
+        last_id_large = store._next_id - 1
+
+        start = time.perf_counter()
+        for _ in range(rounds):
+            store.get_by_id(last_id_large)
+        time_large = (time.perf_counter() - start) / rounds
+
+        # O(1) 断言：大集合的查询时间不超过小集合的 20 倍
+        # （若是 O(n)，大集合应慢约 1,000 倍）
+        ratio = time_large / time_small if time_small > 0 else 1.0
+        assert ratio < 20, (
+            f"get_by_id 不符合 O(1) 预期：大集合耗时是小集合的 {ratio:.1f} 倍\n"
+            f"  小集合(n=10)   : {time_small*1e6:.3f} μs/次\n"
+            f"  大集合(n=10000): {time_large*1e6:.3f} μs/次"
+        )
 
 
 class TestProductStoreList:

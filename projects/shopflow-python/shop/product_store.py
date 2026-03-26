@@ -42,13 +42,15 @@ class ProductStore:
         self._next_id: int = 1
         self._load()
 
-    # TODO: 添加时间复杂度注释
     def add(self, name: str, price: float, stock: int) -> Product:
         """
         添加新商品
 
-        Time Complexity: TODO — 请分析并填写
-        Space Complexity: TODO — 请分析并填写
+        Time Complexity: O(1) 均摊
+            - dict 赋值：O(1) 均摊（偶发 rehash 为 O(n)，但均摊到每次操作仍是 O(1)）
+            - _save() 写 JSON：O(n)，n 为商品总数（必须序列化全部数据）
+            - 瓶颈在 I/O，而非数据结构本身
+        Space Complexity: O(1) — 只新增一个 Product 对象
         """
         product = Product(id=self._next_id, name=name, price=price, stock=stock)
         self._store[self._next_id] = product
@@ -56,35 +58,41 @@ class ProductStore:
         self._save()
         return product
 
-    # TODO: 添加时间复杂度注释
     def get_by_id(self, product_id: int) -> Optional[Product]:
         """
         按 ID 查询商品
 
-        Time Complexity: TODO — 请分析并填写（提示：dict 的特性是什么？）
-        Space Complexity: TODO
+        Time Complexity: O(1)
+            - Python dict 底层是哈希表，按 key 查找不需要遍历，直接计算哈希定位桶
+            - 对比 list：list 按值查找需要 O(n) 遍历；按索引访问虽然是 O(1)，
+              但 product_id 与 list 索引不一定连续对应
+        Space Complexity: O(1) — 不分配额外空间，只返回已有对象的引用
         """
         return self._store.get(product_id)
 
-    # TODO: 添加时间复杂度注释
     def list_all(self) -> list[Product]:
         """
         获取所有商品
 
-        Time Complexity: TODO
-        Space Complexity: TODO
+        Time Complexity: O(n) — n 为商品总数
+            - dict.values() 是 O(1)（返回视图，不复制）
+            - list() 转换需要迭代全部 n 个元素，无法避免
+        Space Complexity: O(n) — 新建了一个包含所有商品引用的 list
         """
         return list(self._store.values())
 
-    # TODO: 添加时间复杂度注释
     def update(self, product_id: int, **kwargs) -> Optional[Product]:
         """
         更新商品字段
 
-        Time Complexity: TODO
-        Space Complexity: TODO
+        Time Complexity: O(k)，k 为传入的字段数（通常极小，视为 O(1)）
+            - dict.get()：O(1)
+            - setattr 循环：O(k)，k ≤ 4（Product 只有 4 个字段）
+            - _save()：O(n)，同 add()，瓶颈在 I/O
+        Space Complexity: O(1) — 原地修改，不分配新对象
 
         注意：这是幂等操作——用相同参数调用多次，结果相同
+            幂等性对 HTTP PUT 语义很重要：客户端可以安全重试
         """
         product = self._store.get(product_id)
         if product is None:
@@ -97,13 +105,15 @@ class ProductStore:
         self._save()
         return product
 
-    # TODO: 添加时间复杂度注释
     def delete(self, product_id: int) -> bool:
         """
         删除商品
 
-        Time Complexity: TODO
-        Space Complexity: TODO
+        Time Complexity: O(1) 均摊
+            - `in` 操作符对 dict：O(1)
+            - `del dict[key]`：O(1) 均摊
+            - _save()：O(n)，同 add()
+        Space Complexity: O(1) — 释放一个对象，不分配新空间
         """
         if product_id not in self._store:
             return False
@@ -111,16 +121,22 @@ class ProductStore:
         self._save()
         return True
 
-    # TODO: 添加时间复杂度注释，并在注释里解释为什么 O(n) 在这里是可接受的
     def search_by_name(self, name: str) -> list[Product]:
         """
         按名称搜索商品（大小写不敏感）
 
-        Time Complexity: TODO — 提示：必须检查每个商品名称
-        Space Complexity: TODO
+        Time Complexity: O(n) — n 为商品总数
+            - 必须检查每一个商品的名称，无法跳过
+            - 没有名称索引，所以无法做到比 O(n) 更快
 
-        思考题：如果商品数量达到百万级，这个 O(n) 搜索会成为瓶颈吗？
-        应该如何优化？（答案：建立名称索引，或使用 Elasticsearch）
+        为什么这里 O(n) 是可接受的：
+            - 当前场景：商品数量 < 10,000，O(n) 耗时 < 1ms，用户感知不到
+            - 搜索是低频操作（相比按 ID 查询），性能不是瓶颈
+            - 过早优化（引入 Elasticsearch）会带来运维成本，不值得
+
+        迁移信号：当商品数量超过 100 万，且搜索成为性能瓶颈时 → 引入倒排索引（Elasticsearch）
+
+        Space Complexity: O(k) — k 为匹配结果数，最坏 O(n)
         """
         name_lower = name.lower()
         return [p for p in self._store.values() if name_lower in p.name.lower()]
