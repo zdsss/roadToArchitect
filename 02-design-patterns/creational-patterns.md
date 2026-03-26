@@ -1,20 +1,20 @@
-# Creational Patterns
+# 创建型模式（Creational Patterns）
 
-Creational patterns deal with object creation mechanisms, aiming to create objects in a manner suitable to the situation. They abstract the instantiation process, making a system independent of how its objects are created, composed, and represented.
+创建型模式处理对象的创建机制，旨在以适合特定场景的方式创建对象。它们对实例化过程进行抽象，使系统独立于其对象的创建、组合和表示方式。
 
 ---
 
-## 1. Singleton
+## 1. 单例模式（Singleton）
 
-### Intent
-Ensure a class has only one instance and provide a global point of access to it.
+### 意图
+确保一个类只有一个实例，并提供一个全局访问点。
 
-### When to Use
-- Exactly one object is needed to coordinate actions across the system (e.g., a configuration manager, logger, or thread pool)
-- Shared resource access must be controlled (database connection, file system)
-- You want to avoid repeatedly creating expensive objects
+### 适用场景
+- 系统中需要恰好一个对象来协调各项操作（例如，配置管理器、日志记录器或线程池）
+- 必须控制对共享资源的访问（数据库连接、文件系统）
+- 希望避免反复创建开销较大的对象
 
-### Structure
+### 结构
 ```
 Singleton
 ├── -instance: Singleton  (static, private)
@@ -22,7 +22,7 @@ Singleton
 └── +getInstance(): Singleton  (static, public)
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class Singleton:
     _instance = None
@@ -41,28 +41,28 @@ b = Singleton()
 assert a is b  # True — same instance
 ```
 
-### Real-World Use Case
-- **Application Logger**: A single logger instance routes all log messages to the same output stream/file, preventing duplicate logs or conflicting file handles.
-- **Database Connection Pool**: One pool object manages all connections to avoid exhausting DB connections.
+### 实际应用场景
+- **应用日志记录器**：单一的日志实例将所有日志消息路由到同一个输出流/文件，避免重复日志或文件句柄冲突。
+- **数据库连接池**：一个连接池对象统一管理所有数据库连接，避免耗尽数据库连接数。
 
-### Caveats
-- Makes unit testing difficult (global state)
-- Can be a disguised global variable — use sparingly
-- In multi-threaded environments, getInstance() must be synchronized
+### 注意事项
+- 使单元测试变得困难（全局状态）
+- 可能是伪装的全局变量——应谨慎使用
+- 在多线程环境中，getInstance() 必须进行同步处理
 
 ---
 
-## 2. Factory Method
+## 2. 工厂方法模式（Factory Method）
 
-### Intent
-Define an interface for creating an object, but let subclasses decide which class to instantiate. Factory Method lets a class defer instantiation to subclasses.
+### 意图
+定义一个用于创建对象的接口，但让子类决定实例化哪个类。工厂方法让一个类将实例化推迟到子类。
 
-### When to Use
-- A class cannot anticipate the type of objects it needs to create
-- Subclasses should control what gets created
-- You want to encapsulate object creation logic and hide concrete types from clients
+### 适用场景
+- 一个类无法预知它所需要创建的对象类型
+- 子类应该控制所创建的对象
+- 希望封装对象创建逻辑，并对客户端隐藏具体类型
 
-### Structure
+### 结构
 ```
 Creator (abstract)
 ├── +factoryMethod(): Product   (abstract)
@@ -75,7 +75,7 @@ Product (interface)
 ConcreteProduct implements Product
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class Notification:  # Product interface
     def send(self, message): pass
@@ -102,23 +102,23 @@ notif = factory.create_notification("email")
 notif.send("Hello!")  # Email: Hello!
 ```
 
-### Real-World Use Case
-- **UI Framework Buttons**: A cross-platform UI library uses a factory method so Windows creates `WindowsButton` and macOS creates `MacButton`, while the client code calls `createButton()` without knowing the concrete type.
-- **Payment Processors**: An e-commerce system creates `StripePayment`, `PayPalPayment`, or `CryptoPayment` objects depending on user selection.
+### 实际应用场景
+- **UI 框架按钮**：跨平台 UI 库使用工厂方法，使 Windows 创建 `WindowsButton`、macOS 创建 `MacButton`，而客户端代码只调用 `createButton()`，无需知道具体类型。
+- **支付处理器**：电商系统根据用户选择创建 `StripePayment`、`PayPalPayment` 或 `CryptoPayment` 对象。
 
 ---
 
-## 3. Abstract Factory
+## 3. 抽象工厂模式（Abstract Factory）
 
-### Intent
-Provide an interface for creating **families** of related or dependent objects without specifying their concrete classes.
+### 意图
+提供一个接口，用于创建一**族**相关或相互依赖的对象，而无需指定其具体类。
 
-### When to Use
-- A system must be independent of how its products are created
-- You need to ensure that a family of products works together (UI theme, OS-specific widgets)
-- You want to enforce constraints across product families
+### 适用场景
+- 系统必须独立于其产品的创建方式
+- 需要确保一族产品能够协同工作（UI 主题、特定操作系统的控件）
+- 希望在产品族之间强制约束
 
-### Structure
+### 结构
 ```
 AbstractFactory (interface)
 ├── +createProductA(): AbstractProductA
@@ -132,7 +132,7 @@ ConcreteProductA1, ConcreteProductA2 (implementations)
 ConcreteProductB1, ConcreteProductB2 (implementations)
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class GUIFactory:  # Abstract Factory
     def create_button(self): pass
@@ -162,31 +162,31 @@ factory = WindowsFactory() if os_type == "windows" else MacFactory()
 build_ui(factory)
 ```
 
-### Real-World Use Case
-- **Cross-platform UI toolkits**: Qt, wxWidgets, or JavaFX produce native-looking components per OS via abstract factories.
-- **Cloud provider SDKs**: An abstract factory produces `S3Bucket`/`AzureBlob`/`GCSBucket` depending on the configured cloud, keeping application code provider-agnostic.
+### 实际应用场景
+- **跨平台 UI 工具包**：Qt、wxWidgets 或 JavaFX 通过抽象工厂为每个操作系统生成原生外观的组件。
+- **云服务商 SDK**：抽象工厂根据所配置的云服务商生成 `S3Bucket`/`AzureBlob`/`GCSBucket`，使应用程序代码与服务商无关。
 
-### Factory Method vs. Abstract Factory
+### 工厂方法 vs. 抽象工厂
 
-| | Factory Method | Abstract Factory |
+| | 工厂方法（Factory Method） | 抽象工厂（Abstract Factory） |
 |---|---|---|
-| Scope | Single product | Family of products |
-| Mechanism | Inheritance (subclass overrides) | Composition (factory object injected) |
-| Use when | One varying product type | Multiple related product types |
+| 范围 | 单一产品 | 一族产品 |
+| 机制 | 继承（子类重写） | 组合（注入工厂对象） |
+| 适用场景 | 只有一种变化的产品类型 | 多种相关的产品类型 |
 
 ---
 
-## 4. Builder
+## 4. 建造者模式（Builder）
 
-### Intent
-Separate the construction of a complex object from its representation, allowing the same construction process to create different representations.
+### 意图
+将一个复杂对象的构建与其表示分离，使得同一个构建过程可以创建不同的表示。
 
-### When to Use
-- An object requires many optional parameters (avoid telescoping constructors)
-- Construction involves multiple steps that must occur in a specific order
-- You want to produce different representations of the same product (e.g., XML vs. JSON report)
+### 适用场景
+- 对象需要大量可选参数（避免重叠构造函数）
+- 构建过程涉及必须按特定顺序执行的多个步骤
+- 希望从相同数据生成不同表示（例如，XML 报告与 JSON 报告）
 
-### Structure
+### 结构
 ```
 Director
 └── +construct(builder: Builder)
@@ -200,7 +200,7 @@ ConcreteBuilder implements Builder
 Product
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class QueryBuilder:
     def __init__(self):
@@ -247,25 +247,25 @@ query = (
 # SELECT id, name, email FROM users WHERE active = 1 AND age > 18 LIMIT 100
 ```
 
-### Real-World Use Case
-- **HTTP Request Builders**: Libraries like Python's `requests` or Java's `HttpClient.newBuilder()` use builder to construct requests with optional headers, timeouts, body, etc.
-- **Document Generators**: Building PDF, HTML, or Markdown reports from the same data by swapping the concrete builder.
-- **Test Data Factories**: Creating complex domain objects in tests without dozens of constructor arguments.
+### 实际应用场景
+- **HTTP 请求构建器**：Python 的 `requests` 或 Java 的 `HttpClient.newBuilder()` 等库使用建造者模式构建带有可选请求头、超时、请求体等的请求。
+- **文档生成器**：通过替换不同的具体建造者，从相同数据生成 PDF、HTML 或 Markdown 报告。
+- **测试数据工厂**：在测试中创建复杂领域对象，无需传入数十个构造函数参数。
 
 ---
 
-## 5. Prototype
+## 5. 原型模式（Prototype）
 
-### Intent
-Specify the kinds of objects to create using a prototypical instance, and create new objects by **copying** (cloning) this prototype.
+### 意图
+使用原型实例指定要创建的对象种类，并通过**复制**（克隆）该原型来创建新对象。
 
-### When to Use
-- Object creation is expensive (complex initialization, DB lookups) and a copy is cheaper
-- You need copies of objects with slight variations at runtime
-- Classes to instantiate are specified at runtime (e.g., dynamic plugin loading)
-- You want to avoid a class hierarchy of factories
+### 适用场景
+- 对象创建开销较大（复杂初始化、数据库查询），而复制的代价更低
+- 运行时需要带有细微差异的对象副本
+- 要实例化的类在运行时才确定（例如，动态插件加载）
+- 希望避免构建工厂类的继承层次
 
-### Structure
+### 结构
 ```
 Prototype (interface)
 └── +clone(): Prototype
@@ -277,7 +277,7 @@ Client
 └── uses prototype.clone() instead of new ConcretePrototype()
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 import copy
 
@@ -304,27 +304,27 @@ march_report.title = "March 2026 Report"
 march_report.sections.append("Q1 Forecast")
 ```
 
-### Shallow vs. Deep Copy
+### 浅拷贝（Shallow Copy）与深拷贝（Deep Copy）
 
-| | Shallow Copy | Deep Copy |
+| | 浅拷贝（Shallow Copy） | 深拷贝（Deep Copy） |
 |---|---|---|
-| Primitives | Copied by value | Copied by value |
-| Nested objects | Shared reference | New independent copy |
-| Use when | No nested mutable state | Nested mutable objects present |
+| 基本类型 | 按值复制 | 按值复制 |
+| 嵌套对象 | 共享引用 | 独立的新副本 |
+| 适用场景 | 无嵌套可变状态 | 存在嵌套可变对象 |
 
-### Real-World Use Case
-- **Game Enemies**: A game spawns dozens of enemy instances by cloning a pre-configured prototype rather than re-loading assets and running initialization logic.
-- **Configuration Templates**: A deployment system maintains baseline server configs as prototypes; each environment clones and overrides only differing values.
-- **Cell division metaphor**: Biological inspiration — a template splits to produce configured offspring.
+### 实际应用场景
+- **游戏敌人**：游戏通过克隆预配置的原型来生成数十个敌人实例，而无需重新加载资源和执行初始化逻辑。
+- **配置模板**：部署系统将基准服务器配置作为原型保存，每个环境克隆后仅覆盖差异值。
+- **细胞分裂比喻**：生物学灵感——模板分裂产生配置好的后代。
 
 ---
 
-## Summary Table
+## 汇总表
 
-| Pattern | Problem Solved | Key Mechanism |
+| 模式 | 解决的问题 | 核心机制 |
 |---|---|---|
-| Singleton | One instance only | Private constructor + static accessor |
-| Factory Method | Decouple creation from use (one type) | Subclass overrides creation method |
-| Abstract Factory | Families of related objects | Factory object injected/swapped |
-| Builder | Complex multi-step construction | Step-by-step builder with fluent API |
-| Prototype | Cheap copies with variation | Clone existing instance |
+| 单例（Singleton） | 只允许一个实例 | 私有构造函数 + 静态访问器 |
+| 工厂方法（Factory Method） | 将创建与使用解耦（单一类型） | 子类重写创建方法 |
+| 抽象工厂（Abstract Factory） | 一族相关对象的创建 | 注入/替换工厂对象 |
+| 建造者（Builder） | 复杂的多步骤构建 | 逐步构建，支持流式 API |
+| 原型（Prototype） | 低成本地创建带有变化的副本 | 克隆已有实例 |

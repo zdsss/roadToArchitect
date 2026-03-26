@@ -1,24 +1,24 @@
-# Structural Patterns
+# 结构型模式（Structural Patterns）
 
-Structural patterns deal with how classes and objects are composed to form larger structures.
+结构型模式关注类与对象如何组合，以构成更大的结构。
 
 ---
 
-## 1. Adapter
+## 1. 适配器模式（Adapter）
 
-### Intent
-Convert an interface of a class into another interface clients expect. Lets incompatible interfaces work together.
+### 意图
+将一个类的接口转换成客户端所期望的另一种接口，使原本因接口不兼容而无法协作的类能够一起工作。
 
-### When to Use
-- Integrating legacy code or third-party libraries with incompatible interfaces
-- You want to use an existing class but its interface doesn't match what you need
+### 适用场景
+- 集成遗留代码或第三方库，但接口不兼容
+- 想复用某个已有类，但其接口与需求不匹配
 
-### Structure
+### 结构
 ```
-Client → Target (interface) ← Adapter → Adaptee
+Client → Target（接口）← Adapter → Adaptee
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class LegacyPrinter:
     def print_old_way(self, text): ...
@@ -30,33 +30,33 @@ class PrinterAdapter:
         self.legacy.print_old_way(text)
 ```
 
-### Real-World Example
-- ORMs adapting DB drivers (psycopg2 → SQLAlchemy)
-- Payment gateway adapters (Stripe/PayPal behind one interface)
+### 实际案例
+- ORM 适配数据库驱动（psycopg2 → SQLAlchemy）
+- 支付网关适配器（Stripe/PayPal 统一在同一接口后面）
 
 ---
 
-## 2. Decorator
+## 2. 装饰器模式（Decorator）
 
-### Intent
-Attach additional responsibilities to an object dynamically. Decorators provide a flexible alternative to subclassing.
+### 意图
+动态地为对象附加额外的职责。装饰器提供了比继承更灵活的功能扩展方式。
 
-### When to Use
-- Add behavior to individual objects without affecting others
-- Behavior can be added and removed at runtime
-- Extending via subclassing would lead to an explosion of classes
+### 适用场景
+- 在不影响其他对象的情况下，为单个对象添加行为
+- 行为可以在运行时动态添加和移除
+- 通过子类扩展会导致类的数量爆炸式增长
 
-### Structure
+### 结构
 ```
-Component (interface)
+Component（接口）
 ├── ConcreteComponent
-└── Decorator (wraps Component)
+└── Decorator（包装 Component）
     ├── LoggingDecorator
     ├── CachingDecorator
     └── AuthDecorator
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class DataService:
     def fetch(self, id): return db.get(id)
@@ -71,30 +71,30 @@ class CachingDecorator:
         return self.cache[id]
 ```
 
-### Real-World Example
-- HTTP middleware stacks (auth → logging → rate-limit → handler)
-- Python `@functools.lru_cache`, `@property`
+### 实际案例
+- HTTP 中间件调用栈（认证 → 日志 → 限流 → 处理器）
+- Python 的 `@functools.lru_cache`、`@property`
 
 ---
 
-## 3. Facade
+## 3. 外观模式（Facade）
 
-### Intent
-Provide a simplified interface to a complex subsystem.
+### 意图
+为复杂子系统提供一个简化的统一接口。
 
-### When to Use
-- Simplify a complex library or set of APIs
-- Layer your subsystems — higher layers use facades of lower layers
-- Reduce dependencies on complex subsystem internals
+### 适用场景
+- 简化复杂库或一组 API 的使用方式
+- 对子系统进行分层——上层通过外观调用下层
+- 减少对复杂子系统内部实现的依赖
 
-### Structure
+### 结构
 ```
 Client → Facade → SubsystemA
                 → SubsystemB
                 → SubsystemC
 ```
 
-### Pseudocode
+### 伪代码
 ```python
 class OrderFacade:
     def place_order(self, cart, user):
@@ -104,26 +104,26 @@ class OrderFacade:
         notification.send(user, "Order confirmed")
 ```
 
-### Real-World Example
-- API Gateway hiding microservice complexity
-- SDK wrapping complex REST APIs
+### 实际案例
+- API 网关隐藏微服务的复杂性
+- SDK 封装复杂的 REST API
 
 ---
 
-## 4. Proxy
+## 4. 代理模式（Proxy）
 
-### Intent
-Provide a surrogate or placeholder for another object to control access to it.
+### 意图
+为另一个对象提供一个代理或占位符，以控制对该对象的访问。
 
-### Types
-| Type | Purpose |
-|------|---------|
-| Virtual Proxy | Lazy initialization — delay expensive object creation |
-| Protection Proxy | Access control |
-| Remote Proxy | Local representative of remote object (RPC stub) |
-| Caching Proxy | Cache results of expensive operations |
+### 类型
+| 类型 | 用途 |
+|------|------|
+| 虚拟代理（Virtual Proxy） | 延迟初始化——推迟开销大的对象的创建 |
+| 保护代理（Protection Proxy） | 访问控制 |
+| 远程代理（Remote Proxy） | 远程对象的本地代表（RPC 存根） |
+| 缓存代理（Caching Proxy） | 缓存开销大的操作结果 |
 
-### Pseudocode
+### 伪代码
 ```python
 class ImageProxy:
     def __init__(self, path):
@@ -135,23 +135,23 @@ class ImageProxy:
         self._image.display()
 ```
 
-### Real-World Example
-- Service mesh sidecar proxies (Envoy, Linkerd)
-- ORM lazy-loading relationships
-- API Gateway as reverse proxy
+### 实际案例
+- 服务网格边车代理（Envoy、Linkerd）
+- ORM 懒加载关联关系
+- API 网关作为反向代理
 
 ---
 
-## 5. Composite
+## 5. 组合模式（Composite）
 
-### Intent
-Compose objects into tree structures to represent part-whole hierarchies. Let clients treat individual objects and compositions uniformly.
+### 意图
+将对象组合成树形结构以表示"部分-整体"层次关系，使客户端可以统一对待单个对象与组合对象。
 
-### When to Use
-- Tree structures: file system, UI component trees, org charts
-- You want clients to ignore the difference between leaf and composite
+### 适用场景
+- 树形结构：文件系统、UI 组件树、组织架构图
+- 希望客户端无需区分叶子节点与组合节点
 
-### Pseudocode
+### 伪代码
 ```python
 class Component:
     def render(self): ...
@@ -167,23 +167,23 @@ class Container(Component):
         for c in self.children: c.render()
 ```
 
-### Real-World Example
-- React component tree
+### 实际案例
+- React 组件树
 - HTML DOM
-- File system (files and directories)
+- 文件系统（文件与目录）
 
 ---
 
-## 6. Bridge
+## 6. 桥接模式（Bridge）
 
-### Intent
-Decouple an abstraction from its implementation so both can vary independently.
+### 意图
+将抽象部分与实现部分解耦，使二者可以独立变化。
 
-### When to Use
-- Avoid permanent binding between abstraction and implementation
-- Both abstraction and implementation should be extensible via subclassing
+### 适用场景
+- 避免抽象与实现之间产生永久绑定
+- 抽象和实现都应该可以通过子类独立扩展
 
-### Pseudocode
+### 伪代码
 ```python
 class Notification:
     def __init__(self, sender):  # sender is the "bridge"
@@ -197,16 +197,16 @@ class SMSSender:
     def deliver(self, msg): ...
 ```
 
-### Real-World Example
-- Notification system supporting multiple channels
-- Database drivers (abstraction: ORM, implementation: specific DB)
+### 实际案例
+- 支持多渠道的通知系统
+- 数据库驱动（抽象层：ORM，实现层：具体数据库）
 
 ---
 
-## Key Architect Takeaways
+## 架构师核心要点
 
-1. **Adapter** when you can't change existing code but need interop.
-2. **Decorator** for composable middleware pipelines — HTTP, logging, auth.
-3. **Facade** at service boundaries — hide complexity behind clean APIs.
-4. **Proxy** for cross-cutting concerns: caching, auth, circuit breaking.
-5. **Composite** whenever you model tree structures in your domain.
+1. **适配器模式**：当无法修改已有代码但需要互通时使用。
+2. **装饰器模式**：用于可组合的中间件管道——HTTP、日志、认证。
+3. **外观模式**：用于服务边界——在整洁的 API 背后隐藏复杂性。
+4. **代理模式**：用于横切关注点：缓存、认证、熔断。
+5. **组合模式**：在领域模型中需要建模树形结构时使用。

@@ -1,148 +1,148 @@
-# Operating Systems Fundamentals
+# 操作系统基础（Operating Systems Fundamentals）
 
-Core OS concepts every architect must understand — they underpin performance, concurrency, and infrastructure decisions.
+每位架构师都必须掌握的核心操作系统概念——它们是性能、并发与基础设施决策的底层支撑。
 
 ---
 
-## Processes vs Threads
+## 进程（Process）与线程（Thread）
 
-| | Process | Thread |
+| | 进程 | 线程 |
 |--|---------|--------|
-| Memory | Own address space | Shared memory within process |
-| Creation cost | High (fork) | Low |
-| Communication | IPC (pipes, sockets, shared mem) | Shared variables (need sync) |
-| Isolation | Strong — crash doesn't affect others | Weak — one thread can crash process |
-| Use case | Microservices, isolation-critical tasks | Concurrent work within one service |
+| 内存 | 独立地址空间 | 共享进程内存 |
+| 创建开销 | 高（fork） | 低 |
+| 通信方式 | 进程间通信（IPC）：管道、套接字、共享内存 | 共享变量（需同步） |
+| 隔离性 | 强——崩溃不影响其他进程 | 弱——一个线程崩溃可导致整个进程崩溃 |
+| 适用场景 | 微服务、对隔离性要求高的任务 | 同一服务内的并发工作 |
 
-### Context Switching
-The OS scheduler saves a process/thread's state (registers, PC, stack pointer) and loads another's. Cost:
-- **Process switch**: ~1–10 μs (flush TLB, reload page tables)
-- **Thread switch**: ~0.1–1 μs (same address space)
+### 上下文切换（Context Switching）
+操作系统调度器保存当前进程/线程的状态（寄存器、程序计数器、栈指针），然后加载另一个进程/线程的状态。开销如下：
+- **进程切换**：约 1–10 μs（需刷新 TLB、重新加载页表）
+- **线程切换**：约 0.1–1 μs（共享同一地址空间）
 
-**Architect implication**: Thousands of threads = high context-switch overhead. Use async I/O + event loops (Node.js, asyncio) or worker pools.
+**架构师启示**：大量线程会带来高昂的上下文切换开销。应使用异步 I/O + 事件循环（如 Node.js、asyncio）或工作线程池。
 
 ---
 
-## Concurrency Primitives
+## 并发原语（Concurrency Primitives）
 
-### Mutex (Mutual Exclusion Lock)
-Only one thread holds it at a time. Others block.
+### 互斥锁（Mutex，Mutual Exclusion Lock）
+同一时刻只有一个线程持有该锁，其他线程阻塞等待。
 ```
 lock(mutex)
   // critical section
 unlock(mutex)
 ```
 
-### Semaphore
-Counts available resources. `wait()` decrements, `signal()` increments.
-- Binary semaphore ≈ mutex
-- Counting semaphore controls access to N resources (e.g., DB connection pool)
+### 信号量（Semaphore）
+用于计数可用资源。`wait()` 使计数减一，`signal()` 使计数加一。
+- 二值信号量（Binary semaphore）≈ 互斥锁
+- 计数信号量（Counting semaphore）用于控制对 N 个资源的访问（例如数据库连接池）
 
-### Deadlock Conditions (all 4 must hold)
-1. **Mutual exclusion** — resource held by only one thread
-2. **Hold and wait** — thread holds resource while waiting for another
-3. **No preemption** — resources can't be forcibly taken
-4. **Circular wait** — T1 waits for T2, T2 waits for T1
+### 死锁（Deadlock）的四个必要条件（需同时满足）
+1. **互斥**——资源同一时刻只能被一个线程持有
+2. **持有并等待**——线程持有资源的同时等待其他资源
+3. **不可剥夺**——已分配的资源不能被强制回收
+4. **循环等待**——线程 T1 等待 T2 持有的资源，T2 等待 T1 持有的资源
 
-**Prevention**: Lock ordering, timeouts, lock-free structures.
+**预防手段**：锁顺序固定、设置超时、使用无锁（lock-free）数据结构。
 
-### Race Condition
-Outcome depends on thread scheduling order. Fix with proper synchronization.
+### 竞态条件（Race Condition）
+程序结果依赖于线程调度顺序。需通过正确的同步机制来修复。
 
 ---
 
-## Memory Management
+## 内存管理（Memory Management）
 
-### Virtual Memory
-- Each process sees its own address space (illusion)
-- OS maps virtual → physical via **page table**
-- **Page fault**: accessed page not in RAM → OS loads from disk (swap)
+### 虚拟内存（Virtual Memory）
+- 每个进程拥有独立的地址空间（这是一种抽象/假象）
+- 操作系统通过**页表（page table）**将虚拟地址映射到物理地址
+- **缺页中断（Page fault）**：访问的页不在内存中时，操作系统从磁盘（交换区）加载该页
 
-### Memory Layout (typical process)
+### 内存布局（Memory Layout，典型进程）
 ```
-┌─────────────┐  high address
-│   Stack     │  grows down — local vars, function frames
+┌─────────────┐  高地址
+│   Stack     │  向下增长——局部变量、函数栈帧
 ├─────────────┤
 │     ↓       │
 │    (gap)    │
 │     ↑       │
 ├─────────────┤
-│   Heap      │  grows up — dynamic allocation (malloc/new)
+│   Heap      │  向上增长——动态分配（malloc/new）
 ├─────────────┤
-│   BSS       │  uninitialized globals
+│   BSS       │  未初始化的全局变量
 ├─────────────┤
-│   Data      │  initialized globals
+│   Data      │  已初始化的全局变量
 ├─────────────┤
-│   Text      │  program code (read-only)
-└─────────────┘  low address
+│   Text      │  程序代码（只读）
+└─────────────┘  低地址
 ```
 
-### Common Memory Issues
-| Issue | Description | Example |
+### 常见内存问题
+| 问题 | 说明 | 示例 |
 |-------|-------------|----------|
-| Memory leak | Allocated memory never freed | Forgotten `free()` / unclosed connections |
-| Buffer overflow | Writing past allocated boundary | C string operations |
-| Dangling pointer | Pointer to freed memory | Use-after-free |
-| Stack overflow | Stack grows into forbidden region | Deep recursion |
+| 内存泄漏（Memory leak） | 已分配的内存从未释放 | 忘记调用 `free()` / 连接未关闭 |
+| 缓冲区溢出（Buffer overflow） | 写操作超出已分配边界 | C 语言字符串操作 |
+| 悬空指针（Dangling pointer） | 指针指向已释放的内存 | 释放后使用（Use-after-free） |
+| 栈溢出（Stack overflow） | 栈增长进入禁止区域 | 深层递归 |
 
 ---
 
-## I/O Models
+## I/O 模型（I/O Models）
 
-### Blocking I/O
-Thread blocks until I/O completes. Simple but wastes CPU waiting.
+### 阻塞 I/O（Blocking I/O）
+线程阻塞直至 I/O 完成。编程简单，但等待期间浪费 CPU 资源。
 
-### Non-Blocking I/O
-I/O call returns immediately with EAGAIN if not ready. App polls.
+### 非阻塞 I/O（Non-Blocking I/O）
+若 I/O 尚未就绪，调用立即返回 EAGAIN。应用程序轮询状态。
 
-### I/O Multiplexing (select/poll/epoll)
-- One thread monitors many file descriptors
-- `select`: O(n) scan, limited FDs
-- `epoll` (Linux): O(1) event notification, scales to millions
-- Foundation of Node.js, Nginx, Redis event loops
+### I/O 多路复用（I/O Multiplexing，select/poll/epoll）
+- 单线程监控多个文件描述符
+- `select`：O(n) 扫描，文件描述符数量有限制
+- `epoll`（Linux）：O(1) 事件通知，可扩展至百万级连接
+- 是 Node.js、Nginx、Redis 事件循环的基础
 
-### Async I/O (AIO)
-Kernel notifies app via callback/signal when I/O completes. True async.
+### 异步 I/O（AIO，Async I/O）
+I/O 完成后，内核通过回调或信号通知应用程序。真正意义上的异步。
 
-### Architect Decision
+### 架构决策
 ```
-CPU-bound work    → Multiple processes/threads (use all cores)
-I/O-bound work    → Async/event-driven (Node.js, asyncio, Netty)
-Mixed             → Thread pool + async I/O (Golang goroutines, Java virtual threads)
+CPU 密集型工作    → 多进程/多线程（充分利用所有核心）
+I/O 密集型工作    → 异步/事件驱动（Node.js、asyncio、Netty）
+混合型            → 线程池 + 异步 I/O（Golang goroutines、Java 虚拟线程）
 ```
 
 ---
 
-## File Systems
+## 文件系统（File Systems）
 
-### Key Concepts
-- **Inode**: metadata about a file (size, permissions, timestamps, pointers to data blocks). Not the filename.
-- **Hard link**: another directory entry pointing to same inode
-- **Soft link (symlink)**: file whose content is a path to another file
+### 核心概念
+- **inode**：文件的元数据（大小、权限、时间戳、数据块指针），不包含文件名。
+- **硬链接（Hard link）**：指向同一 inode 的另一个目录项
+- **软链接/符号链接（Soft link / symlink）**：内容为目标文件路径的特殊文件
 
-### File Descriptors
-Integers the OS uses to track open files/sockets. Default limits (ulimit) cause "too many open files" errors at scale — always configure limits in production.
+### 文件描述符（File Descriptors）
+操作系统用于跟踪已打开文件/套接字的整数标识。默认限制（ulimit）在大规模场景下会导致"打开文件过多（too many open files）"错误——在生产环境中务必正确配置此限制。
 
 ---
 
-## Signals & Process Management
+## 信号（Signals）与进程管理（Process Management）
 
-| Signal | Default action | Common use |
+| 信号 | 默认行为 | 常见用途 |
 |--------|---------------|------------|
-| SIGTERM | Terminate | Graceful shutdown (Docker stop) |
-| SIGKILL | Kill (uncatchable) | Force kill (Docker kill) |
-| SIGINT | Terminate | Ctrl+C |
-| SIGHUP | Terminate | Reload config (Nginx) |
-| SIGCHLD | Ignore | Parent notified of child exit |
+| SIGTERM | 终止进程 | 优雅关闭（Docker stop） |
+| SIGKILL | 强制终止（不可捕获） | 强制杀死进程（Docker kill） |
+| SIGINT | 终止进程 | Ctrl+C |
+| SIGHUP | 终止进程 | 重新加载配置（Nginx） |
+| SIGCHLD | 忽略 | 父进程收到子进程退出通知 |
 
-**Always handle SIGTERM** for graceful shutdown — drain connections, flush buffers, deregister from service discovery.
+**务必处理 SIGTERM** 以实现优雅关闭——排空连接、刷新缓冲区、从服务发现中注销。
 
 ---
 
-## Key Architect Takeaways
+## 架构师核心要点
 
-1. Understand threads vs processes to choose the right concurrency model for each service.
-2. Deadlocks happen in distributed systems too — design with timeouts and circuit breakers.
-3. Virtual memory and swap affect latency — avoid swap in production databases.
-4. `epoll`-based event loops handle C10K+ connections with a single thread.
-5. File descriptor limits are a common production footgun — set them correctly.
+1. 理解线程与进程的差异，为每个服务选择合适的并发模型。
+2. 死锁在分布式系统中同样会发生——设计时应引入超时机制和熔断器（circuit breakers）。
+3. 虚拟内存与交换区（swap）会影响延迟——生产环境数据库中应避免使用 swap。
+4. 基于 `epoll` 的事件循环可用单线程处理 C10K+ 级别的并发连接。
+5. 文件描述符限制是常见的生产环境"陷阱"——请正确配置该参数。

@@ -1,92 +1,107 @@
-# Anti-Patterns
+# 反模式（Anti-Patterns）
 
-Anti-patterns are common responses to recurring problems that are ineffective and counterproductive. Recognizing them is as important as knowing the good patterns.
+反模式（Anti-Patterns）是针对反复出现的问题所给出的常见应对方式，但这些方式往往低效且适得其反。识别反模式与掌握良好的设计模式同样重要。
 
 ---
 
 ## 1. God Object / God Class
 
-### What it is
-A single class that knows too much or does too much — it holds most of the application's data and logic.
+### 是什么
 
-### Why it happens
-- Organic growth: "just add it here"
-- No clear domain boundaries
-- Fear of creating new files/classes
+一个类知道的太多或做的太多——它承载了应用程序中大部分的数据和逻辑。
 
-### Why it's harmful
-- Impossible to test in isolation
-- Merge conflicts on every feature
-- Violates Single Responsibility Principle
+### 为何发生
 
-### How to fix
-- Identify distinct responsibilities and extract them into separate classes
-- Apply Domain-Driven Design — find your bounded contexts
-- Decompose by feature, not by layer
+- 代码自然增长：总是"加在这里就行了"
+- 没有清晰的领域边界
+- 害怕新建文件或类
+
+### 为何有害
+
+- 无法单独测试
+- 每个功能开发都会引发合并冲突
+- 违反单一职责原则（Single Responsibility Principle）
+
+### 如何修复
+
+- 识别不同的职责，将其提取到独立的类中
+- 应用领域驱动设计（Domain-Driven Design）——划定限界上下文
+- 按功能而非按层次进行分解
 
 ---
 
 ## 2. Spaghetti Code
 
-### What it is
-Code with tangled control flow — deeply nested conditionals, goto-like jumps, no clear structure.
+### 是什么
 
-### Why it happens
-- Patches on patches without refactoring
-- No design upfront
-- Deadline pressure
+控制流混乱的代码——深层嵌套的条件语句、类似 goto 的跳转、没有清晰的结构。
 
-### Why it's harmful
-- Impossible to reason about
-- Every change risks breaking something unrelated
+### 为何发生
 
-### How to fix
-- Extract methods/functions to flatten nesting
-- Replace conditionals with polymorphism or strategy pattern
-- Introduce clear layers (controller → service → repository)
+- 反复打补丁却不重构
+- 没有前期设计
+- 截止日期的压力
+
+### 为何有害
+
+- 很难理清逻辑
+- 每次修改都可能破坏不相关的功能
+
+### 如何修复
+
+- 提取方法/函数以减少嵌套层级
+- 用多态或策略模式（Strategy Pattern）替换条件判断
+- 引入清晰的分层（controller → service → repository）
 
 ---
 
 ## 3. Golden Hammer
 
-### What it is
-Applying a familiar technology or pattern to every problem regardless of fit. "If all you have is a hammer, everything looks like a nail."
+### 是什么
 
-### Examples
-- Using a relational DB for everything (even graph data)
-- Microservices for a 2-person startup
-- Kafka for a feature that needs a simple job queue
+无论是否合适，都将熟悉的技术或模式套用到每个问题上。"当你只有一把锤子，所有东西看起来都像钉子。"
 
-### How to fix
-- Evaluate tools against requirements, not familiarity
-- Build a tech radar — know what's in your toolbox and when each applies
+### 示例
+
+- 对所有场景都使用关系型数据库（即使数据是图结构）
+- 两人初创团队就上微服务
+- 用 Kafka 处理一个只需要简单任务队列的功能
+
+### 如何修复
+
+- 依据需求评估工具，而不是依赖熟悉度
+- 建立技术雷达——了解你的工具箱，知道每种工具的适用时机
 
 ---
 
 ## 4. Premature Optimization
 
-### What it is
-Optimizing code before you know where the bottleneck is.
+### 是什么
 
-> "Premature optimization is the root of all evil." — Knuth
+在尚不清楚瓶颈在哪里之前就对代码进行优化。
 
-### Why it's harmful
-- Wastes time on non-bottlenecks
-- Makes code harder to read and maintain
-- Optimizes the wrong thing
+> "过早优化是万恶之源。" —— Knuth
 
-### How to fix
-1. Make it work
-2. Make it correct
-3. Profile to find the actual bottleneck
-4. Make it fast (only the bottleneck)
+### 为何有害
+
+- 将时间浪费在非瓶颈上
+- 使代码更难阅读和维护
+- 优化了错误的地方
+
+### 如何修复
+
+1. 先让它能跑起来
+2. 再让它正确运行
+3. 通过性能分析找到真正的瓶颈
+4. 只针对瓶颈进行优化
 
 ---
 
 ## 5. Magic Numbers / Magic Strings
 
-### What it is
-Unexplained literals embedded in code.
+### 是什么
+
+代码中嵌入了未加解释的字面量。
 
 ```python
 # Bad
@@ -99,64 +114,75 @@ APPROVED_STATUS = 3
 ONE_DAY_SECONDS = 86400
 ```
 
-### How to fix
-- Named constants or enums
-- Configuration files for environment-specific values
+### 如何修复
+
+- 使用命名常量或枚举
+- 将环境相关的值放入配置文件
 
 ---
 
 ## 6. Copy-Paste Programming
 
-### What it is
-Duplicating code instead of abstracting it.
+### 是什么
 
-### Why it's harmful
-- Bug fixes must be applied in N places
-- Divergence over time — copies drift apart
-- Violates DRY (Don't Repeat Yourself)
+通过复制代码来代替抽象复用。
 
-### How to fix
-- Extract shared logic into a function/class
-- But: don't abstract prematurely — wait until you have 3+ copies (Rule of Three)
+### 为何有害
+
+- 修复一个 Bug 需要在 N 个地方同步修改
+- 随时间推移副本会逐渐产生差异，造成代码漂移
+- 违反 DRY 原则（Don't Repeat Yourself，不要重复自己）
+
+### 如何修复
+
+- 将共享逻辑提取到函数或类中
+- 但注意：不要过早抽象——等出现 3 份或以上的副本再考虑（三次法则，Rule of Three）
 
 ---
 
-## 7. Lava Flow (Dead Code)
+## 7. Lava Flow（死代码）
 
-### What it is
-Code that nobody understands anymore but everyone is afraid to delete. Like cooled lava — hard and in the way.
+### 是什么
 
-### Why it happens
-- Original author left
-- No tests to verify deletion is safe
-- "It might be needed someday"
+没有人再理解、但所有人都不敢删除的代码。就像冷却的熔岩——坚硬且碍事。
 
-### How to fix
-- Delete it — that's what version control is for
-- Write tests first to document current behavior, then remove dead code
+### 为何发生
+
+- 原作者已经离开
+- 没有测试来验证删除是否安全
+- "说不定哪天会用到"
+
+### 如何修复
+
+- 删掉它——版本控制就是为此而生的
+- 先编写测试来记录当前行为，然后再删除死代码
 
 ---
 
 ## 8. Big Ball of Mud
 
-### What it is
-A system with no discernible architecture — everything depends on everything.
+### 是什么
 
-### Why it happens
-- No architectural vision
-- Accumulated technical debt
-- Constant firefighting
+一个没有任何可辨别架构的系统——所有东西都互相依赖。
 
-### How to fix
-- Identify seams and introduce boundaries incrementally
-- Strangler Fig pattern: build new architecture alongside old, migrate piece by piece
+### 为何发生
+
+- 没有架构愿景
+- 积累的技术债
+- 持续救火式开发
+
+### 如何修复
+
+- 识别接缝点，逐步引入边界
+- 采用绞杀者无花果（Strangler Fig）模式：在旧架构旁构建新架构，逐步迁移
 
 ---
 
 ## 9. Anemic Domain Model
 
-### What it is
-Domain objects (entities) that are just data bags with no behavior — all logic lives in service classes.
+### 是什么
+
+领域对象（实体）只是纯数据容器，没有任何行为——所有逻辑都堆在服务类中。
 
 ```python
 # Anemic
@@ -174,21 +200,23 @@ class Order:
     def total(self): return sum(i.price for i in self.items)
 ```
 
-### Why it's harmful
-- Business logic scattered across services
-- Domain model doesn't reflect the real domain
-- Hard to enforce invariants
+### 为何有害
 
-### How to fix
-- Move behavior into domain objects
-- Apply DDD tactical patterns (entities, value objects, aggregates)
+- 业务逻辑分散在各个服务中
+- 领域模型无法反映真实的业务领域
+- 难以强制执行业务不变量
+
+### 如何修复
+
+- 将行为移入领域对象中
+- 应用领域驱动设计（DDD）战术模式（实体、值对象、聚合）
 
 ---
 
-## Key Architect Takeaways
+## 架构师核心要点
 
-1. Anti-patterns are symptoms of missing design — address root causes, not symptoms.
-2. God Objects and Big Ball of Mud are the most common in legacy systems — use Strangler Fig to escape.
-3. Golden Hammer is an architect-level risk — always match tool to problem.
-4. Profile before optimizing — intuition about bottlenecks is usually wrong.
-5. Anemic domain models are fine for simple CRUD; for complex domains, invest in rich models.
+1. 反模式是缺乏设计的症状——要解决根本原因，而不是头痛医头。
+2. 上帝对象和 Big Ball of Mud 在遗留系统中最为常见——使用 Strangler Fig 模式逃脱。
+3. Golden Hammer 是架构师层面的风险——始终要让工具与问题相匹配。
+4. 先做性能分析再优化——对瓶颈的直觉判断通常是错的。
+5. 贫血领域模型（Anemic Domain Model）对简单的 CRUD 场景是可以接受的；对于复杂领域，应投入精力构建丰富的领域模型。
